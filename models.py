@@ -2,25 +2,25 @@ from sqlalchemy import Column,Integer,String
 from database import Base
 
 class home(Base):
-    __tablename__ = 'homeImages'
+    __tablename__ = 'homeimages'
 
     id = Column(Integer,primary_key=True,index=True)
     image = Column(String(250))
 
 class aboutUs(Base):
-    __tablename__ = 'aboutUsImages'
+    __tablename__ = 'aboutusimages'
 
     id = Column(Integer,primary_key=True,index=True)
     image = Column(String(250))
 
 class offerings(Base):
-    __tablename__ = 'offeringsImages'
+    __tablename__ = 'offeringsimages'
 
     id = Column(Integer,primary_key=True,index=True)
     image = Column(String(250))
 
 class resources(Base):
-    __tablename__ = 'resourcesImages'
+    __tablename__ = 'resourcesimages'
 
     id = Column(Integer,primary_key=True,index=True)
     image = Column(String(250))

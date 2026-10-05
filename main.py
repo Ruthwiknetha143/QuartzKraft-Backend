@@ -2,6 +2,9 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
+import os, resend
+from dotenv import load_dotenv
+
 from database import Base, engine, get_db
 from models import (
     home,
@@ -14,8 +17,13 @@ from models import (
     Diffusion,
 )
 
+from schemas import ContactForm
+
+load_dotenv()
+
 Base.metadata.create_all(bind=engine)
 
+resend.api_key = os.getenv("EMAIL_API")
 app = FastAPI()
 
 app.add_middleware(
@@ -115,3 +123,60 @@ def diffusionTile(title: str, db: Session = Depends(get_db)):
     if not tile:
         raise HTTPException(status_code=404, detail="Product not found")
     return tile
+
+@app.post("/contact")
+def contact(form: ContactForm):
+
+    admin_email = os.getenv("ADMIN_EMAIL")
+
+    # Email to admin
+    resend.Emails.send({
+        "from": "onboarding@resend.dev",
+        "to": [admin_email],
+        "subject": f"New Contact Form Submission - {form.name}",
+        "html": f"""
+            <h2>New Contact Form Submission</h2>
+
+            <p><strong>Name:</strong> {form.name}</p>
+            <p><strong>Email:</strong> {form.email}</p>
+            <p><strong>Phone:</strong> {form.phone}</p>
+            <p><strong>Customer Type:</strong> {form.customer}</p>
+
+            <h3>Message</h3>
+            <p>{form.message}</p>
+        """
+    })
+
+    # Confirmation email
+    # Resend testing mode only allows the approved testing recipient
+    resend.Emails.send({
+        "from": "onboarding@resend.dev",
+        "to": [form.email],
+        "subject": "Thank you for contacting QuartzKraft",
+        "html": f"""
+            <h2>Hi {form.name},</h2>
+
+            <p>Thank you for contacting QuartzKraft.</p>
+
+            <p>
+                We have received your message and our team
+                will get back to you soon.
+            </p>
+
+            <hr>
+
+            <h3>Your message</h3>
+            <p>{form.message}</p>
+
+            <br>
+
+            <p>
+                Regards,<br>
+                <strong>QuartzKraft Team</strong>
+            </p>
+        """
+    })
+
+    return {
+        "message": "Emails sent successfully"
+    }
